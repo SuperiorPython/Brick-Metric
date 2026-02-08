@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Details | Brick Archive</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 50px; display: flex; justify-content: center; }
+        .detail-box { background: white; padding: 30px; border-radius: 15px; display: flex; gap: 30px; max-width: 700px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        img { max-width: 300px; border-radius: 8px; }
+        .red-label { color: #E3000B; font-weight: bold; text-transform: uppercase; font-size: 0.8em; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+    <div id="content" class="detail-box">Loading...</div>
+    <script>
+        async function load() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            const resp = await fetch(`https://brick-archive.onrender.com/details/${id}`);
+            const set = await resp.json();
+            document.getElementById('content').innerHTML = `
+                <img src="${set.img_url || ''}">
+                <div>
+                    <a href="search.html">← Back</a>
+                    <h1>${set.name}</h1>
+                    <div class="red-label">Set Number</div><div>${set.set_num}</div><br>
+                    <div class="red-label">Pieces</div><div>${set.num_parts}</div><br>
+                    <div class="red-label">Year</div><div>${set.year}</div>
+                </div>`;
+        }
+        load();
+    </script>
+</body>
+</html>

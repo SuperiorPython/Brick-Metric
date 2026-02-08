@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stats | Brick Archive</title>
+    <style>
+        body { font-family: sans-serif; padding: 50px; text-align: center; background: #eee; }
+        .card { background: white; padding: 30px; border-radius: 15px; max-width: 400px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .timer { font-size: 1.5em; font-weight: bold; color: #E3000B; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Database Status</h2>
+        <div id="timer" class="timer">Syncing...</div>
+        <p>This archive updates daily via GitHub Actions.</p>
+        <a href="index.html">← Back Home</a>
+    </div>
+    <script>
+        async function init() {
+            const resp = await fetch("https://brick-archive.onrender.com/status");
+            const data = await resp.json();
+            const last = new Date(data.last_update);
+            setInterval(() => {
+                const diff = Math.floor((new Date() - last) / 1000);
+                const h = Math.floor(diff/3600), m = Math.floor((diff%3600)/60), s = diff%60;
+                document.getElementById('timer').innerText = `${h}h ${m}m ${s}s ago`;
+            }, 1000);
+        }
+        init();
+    </script>
+</body>
+</html>

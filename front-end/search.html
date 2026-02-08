@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search | Brick Archive</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
+        input { flex-grow: 1; padding: 12px; border: 2px solid #ddd; border-radius: 6px; }
+        .btn { padding: 12px 25px; background: #E3000B; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 6px; }
+        .set-card { background: white; padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 20px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
+        .set-card:hover { border-left: 5px solid #E3000B; transform: translateX(5px); }
+        .thumb { width: 80px; height: 60px; object-fit: contain; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" style="text-decoration:none;">← Home</a>
+        <h1>Search Archive</h1>
+        <div class="search-box">
+            <input type="text" id="q" placeholder="Search sets...">
+            <button class="btn" onclick="search()">SEARCH</button>
+        </div>
+        <div id="results"></div>
+    </div>
+    <script>
+        async function search() {
+            const q = document.getElementById('q').value;
+            const resDiv = document.getElementById('results');
+            resDiv.innerHTML = "Searching...";
+            const resp = await fetch(`https://brick-archive.onrender.com/search?q=${q}`);
+            const data = await resp.json();
+            resDiv.innerHTML = "";
+            data.forEach(set => {
+                const card = document.createElement('div');
+                card.className = 'set-card';
+                card.onclick = () => window.location.href = `page.html?id=${set.set_num}`;
+                card.innerHTML = `<img src="${set.img_url || ''}" class="thumb">
+                                  <div><strong>${set.name}</strong><br><small>#${set.set_num} | ${set.year}</small></div>`;
+                resDiv.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>

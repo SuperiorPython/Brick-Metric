@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Brick Archive</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f4f4; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .card { background: white; padding: 3rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid #E3000B; text-align: center; }
+        h1 { font-size: 3rem; margin: 0; color: #333; }
+        h1 span { color: #E3000B; }
+        .btn-container { display: flex; gap: 15px; margin-top: 2rem; justify-content: center; }
+        .btn { padding: 15px 25px; font-weight: bold; text-decoration: none; border-radius: 8px; transition: 0.2s; }
+        .btn-red { background: #E3000B; color: white; }
+        .btn-yellow { background: #ffcf00; color: #333; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        #status { margin-top: 20px; font-size: 0.8rem; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>THE BRICK <span>ARCHIVE</span></h1>
+        <p>Historical LEGO® Set Database</p>
+        <div class="btn-container">
+            <a href="search.html" class="btn btn-red">SEARCH ARCHIVE</a>
+            <a href="description.html" class="btn btn-yellow">DATABASE STATS</a>
+        </div>
+        <div id="status">Connecting to Render...</div>
+    </div>
+    <script>
+        async function wake() {
+            try {
+                await fetch("https://brick-archive.onrender.com/status");
+                document.getElementById('status').innerText = "Archive Online";
+            } catch (e) { document.getElementById('status').innerText = "Server Waking Up..."; }
+        }
+        wake();
+    </script>
+</body>
+</html>
