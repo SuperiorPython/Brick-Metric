@@ -39,8 +39,19 @@ async function search(page = 1) {
     resDiv.innerHTML = "<p>Searching BrickMetric...</p>";
 
     try {
-        const resp = await fetch(`https://brick-archive.onrender.com/search?q=${q}&page=${page}`);
-        const data = await resp.json();
+        const url = `https://brick-archive.onrender.com/search?q=${q}&page=${page}`;
+    console.log("Attempting to fetch from:", url); // Debugging line
+
+    const resp = await fetch(url);
+
+    console.log("Server Response Status:", resp.status); // Should be 200
+
+    if (!resp.ok) {
+        throw new Error(`Server responded with status: ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    console.log("Data received:", data); // Debugging line
 
         resDiv.innerHTML = `<p style="color: #666;">Found ${data.total_results} sets</p>`;
 
@@ -70,7 +81,8 @@ async function search(page = 1) {
             resDiv.appendChild(nav);
         }
     } catch (err) {
-        resDiv.innerHTML = "Error connecting to server.";
+        console.error("The exact error is:", err); // This WILL show up in the console now
+        resDiv.innerHTML = `Connection Error: ${err.message}`;
     }
 }
     </script>
