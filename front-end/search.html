@@ -35,41 +35,32 @@ async function search(page = 1) {
     currentQuery = q;
     currentPage = page;
 
+    // This is where the name is defined
     const resDiv = document.getElementById('results');
     resDiv.innerHTML = "<p>Searching BrickMetric...</p>";
 
     try {
-        const url = `https://brick-archive.onrender.com/search?q=${q}&page=${page}`;
-    console.log("Attempting to fetch from:", url); // Debugging line
-
-    const resp = await fetch(url);
-
-    console.log("Server Response Status:", resp.status); // Should be 200
-
-    if (!resp.ok) {
-        throw new Error(`Server responded with status: ${resp.status}`);
-    }
-
-    const data = await resp.json();
-    console.log("Data received:", data); // Debugging line
+        const resp = await fetch(`https://brick-archive.onrender.com/search?q=${q}&page=${page}`);
+        const data = await resp.json();
 
         resDiv.innerHTML = `<p style="color: #666;">Found ${data.total_results} sets</p>`;
 
         data.results.forEach(set => {
-    const card = document.createElement('div');
-    card.className = 'set-card';
-    card.onclick = () => window.location.href = `page.html?id=${set.set_num}`;
-    card.innerHTML = `
-        <img src="${set.img_url || ''}" class="thumb">
-        <div>
-            <strong>${set.name}</strong> (${set.year})<br>
-            <small>#${set.set_num} | ${set.num_parts} parts</small>
-        </div>
-    `;
-    resultsDiv.appendChild(card);
-});
+            const card = document.createElement('div');
+            card.className = 'set-card';
+            card.onclick = () => window.location.href = `page.html?id=${set.set_num}`;
 
-        // Pagination Controls
+            card.innerHTML = `
+                <img src="${set.img_url || ''}" class="thumb">
+                <div>
+                    <strong>${set.name}</strong> (${set.year})<br>
+                    <small>#${set.set_num} | ${set.num_parts} parts</small>
+                </div>
+            `;
+            // FIX: Change 'resultsDiv' to 'resDiv' here
+            resDiv.appendChild(card);
+        });
+
         if (data.total_pages > 1) {
             const nav = document.createElement('div');
             nav.style.margin = "20px 0";
@@ -78,10 +69,11 @@ async function search(page = 1) {
                 <span style="margin: 0 15px;">Page ${currentPage} of ${data.total_pages}</span>
                 <button class="btn" onclick="search(${currentPage + 1})" ${currentPage === data.total_pages ? 'disabled' : ''}>NEXT</button>
             `;
+            // FIX: Change 'resultsDiv' to 'resDiv' here too
             resDiv.appendChild(nav);
         }
     } catch (err) {
-        console.error("The exact error is:", err); // This WILL show up in the console now
+        // This will now show the actual error if it fails again
         resDiv.innerHTML = `Connection Error: ${err.message}`;
     }
 }
