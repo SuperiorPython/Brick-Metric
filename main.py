@@ -24,47 +24,32 @@ def get_status():
 
 
 @app.get("/search")
-def search_sets(q: str, page: int = 1):
-    limit = 20
+def search_sets(q: str, page: int = Query(1, ge=1)):
+    limit = 5  # Small limit for terminal testing
     offset = (page - 1) * limit
 
     conn = sqlite3.connect('brick_archive.db')
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    # Lowercase + wildcards makes it much more general
-    search_query = f"%{q.lower()}%"
+    # Fuzzy search: %term% matches anything containing the term
+    search_term = f"%{q}%"
 
-    # 1. Get the TOTAL count for pagination buttons
-    count_query = """
-        SELECT COUNT(*) FROM sets 
-        JOIN themes ON sets.theme_id = themes.id
-        WHERE (LOWER(sets.name) LIKE ? OR sets.set_num LIKE ?)
-        AND themes.name NOT IN ('Books', 'Gear', 'Keychains')
-    """
-    total_results = cursor.execute(count_query, (search_query, search_query)).fetchone()[0]
+    # Get total count for pagination info
+    count_sql = "SELECT COUNT(*) FROM sets WHERE name LIKE ? OR set_num LIKE ?"
+    total_count = cursor.execute(count_sql, (search_term, search_term)).fetchone()[0]
 
-    # 2. Get the actual page of results
-    query = """
-        SELECT sets.set_num, sets.name, sets.year, themes.name as theme, sets.img_url
-        FROM sets
-        JOIN themes ON sets.theme_id = themes.id
-        WHERE (LOWER(sets.name) LIKE ? OR sets.set_num LIKE ?)
-        AND themes.name NOT IN ('Books', 'Gear', 'Keychains')
-        ORDER BY sets.year DESC
-        LIMIT ? OFFSET ?
-    """
-
-    results = cursor.execute(query, (search_query, search_query, limit, offset)).fetchall()
+    # Get the specific page of data
+    data_sql = "SELECT set_num, name, year FROM sets WHERE name LIKE ? OR set_num LIKE ? LIMIT ? OFFSET ?"
+    rows = cursor.execute(data_sql, (search_term, search_term, limit, offset)).fetchall()
     conn.close()
 
     return {
-        "results": [dict(row) for row in results],
-        "total": total_results,
-        "page": page,
-        "pages": (total_results // limit) + 1
+        "total_results": total_count,
+        "current_page": page,
+        "total_pages": (total_count + limit - 1) // limit,
+        "results": [dict(row) for row in rows]
     }
-
 @app.get("/details/{set_num}")
 def get_details(set_num: str):
     conn = sqlite3.connect('brick_archive.db')
