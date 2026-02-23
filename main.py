@@ -23,31 +23,47 @@ def get_status():
     return {"last_update": dt_m.isoformat()}
 
 
-
 @app.get("/search")
-def search_sets(q: str):
+def search_sets(q: str, page: int = 1):
+    limit = 20
+    offset = (page - 1) * limit
+
     conn = sqlite3.connect('brick_archive.db')
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
+    # Lowercase + wildcards makes it much more general
+    search_query = f"%{q.lower()}%"
+
+    # 1. Get the TOTAL count for pagination buttons
+    count_query = """
+        SELECT COUNT(*) FROM sets 
+        JOIN themes ON sets.theme_id = themes.id
+        WHERE (LOWER(sets.name) LIKE ? OR sets.set_num LIKE ?)
+        AND themes.name NOT IN ('Books', 'Gear', 'Keychains')
+    """
+    total_results = cursor.execute(count_query, (search_query, search_query)).fetchone()[0]
+
+    # 2. Get the actual page of results
     query = """
-        SELECT sets.set_num, sets.name, sets.year, themes.name as theme, sets.img_url, sets.num_parts
+        SELECT sets.set_num, sets.name, sets.year, themes.name as theme, sets.img_url
         FROM sets
         JOIN themes ON sets.theme_id = themes.id
-        WHERE (sets.set_num LIKE ? OR sets.name LIKE ?)
-        AND themes.name NOT IN (
-            'Books', 'Gear', 'Keychains', 'Video Games', 
-            'Catalogs', 'Postcards', 'Plushies', 'Clocks'
-        )
-        -- This keeps your 1-piece vintage sets safe!
-        AND sets.num_parts >= 1 
+        WHERE (LOWER(sets.name) LIKE ? OR sets.set_num LIKE ?)
+        AND themes.name NOT IN ('Books', 'Gear', 'Keychains')
         ORDER BY sets.year DESC
-        LIMIT 20
+        LIMIT ? OFFSET ?
     """
 
-    results = cursor.execute(query, (f"%{q}%", f"%{q}%")).fetchall()
+    results = cursor.execute(query, (search_query, search_query, limit, offset)).fetchall()
     conn.close()
-    return [dict(row) for row in results]
+
+    return {
+        "results": [dict(row) for row in results],
+        "total": total_results,
+        "page": page,
+        "pages": (total_results // limit) + 1
+    }
 
 @app.get("/details/{set_num}")
 def get_details(set_num: str):
