@@ -9,10 +9,10 @@ app = FastAPI()
 # THIS IS THE VITAL PART:
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],  # Allows all domains. You can replace "*" with your specific Netlify URL later.
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/status")
