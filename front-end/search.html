@@ -25,22 +25,54 @@
         <div id="results"></div>
     </div>
     <script>
-        async function search() {
-            const q = document.getElementById('q').value;
-            const resDiv = document.getElementById('results');
-            resDiv.innerHTML = "Searching...";
-            const resp = await fetch(`https://brick-archive.onrender.com/search?q=${q}`);
-            const data = await resp.json();
-            resDiv.innerHTML = "";
-            data.forEach(set => {
-                const card = document.createElement('div');
-                card.className = 'set-card';
-                card.onclick = () => window.location.href = `page.html?id=${set.set_num}`;
-                card.innerHTML = `<img src="${set.img_url || ''}" class="thumb">
-                                  <div><strong>${set.name}</strong><br><small>#${set.set_num} | ${set.year}</small></div>`;
-                resDiv.appendChild(card);
-            });
+        let currentPage = 1;
+let currentQuery = "";
+
+async function search(page = 1) {
+    const q = document.getElementById('q').value;
+    if (!q) return;
+
+    currentQuery = q;
+    currentPage = page;
+
+    const resDiv = document.getElementById('results');
+    resDiv.innerHTML = "<p>Searching BrickMetric...</p>";
+
+    try {
+        const resp = await fetch(`https://brick-archive.onrender.com/search?q=${q}&page=${page}`);
+        const data = await resp.json();
+
+        resDiv.innerHTML = `<p style="color: #666;">Found ${data.total_results} sets</p>`;
+
+        data.results.forEach(set => {
+    const card = document.createElement('div');
+    card.className = 'set-card';
+    card.onclick = () => window.location.href = `page.html?id=${set.set_num}`;
+    card.innerHTML = `
+        <img src="${set.img_url || ''}" class="thumb">
+        <div>
+            <strong>${set.name}</strong> (${set.year})<br>
+            <small>#${set.set_num} | ${set.num_parts} parts</small>
+        </div>
+    `;
+    resultsDiv.appendChild(card);
+});
+
+        // Pagination Controls
+        if (data.total_pages > 1) {
+            const nav = document.createElement('div');
+            nav.style.margin = "20px 0";
+            nav.innerHTML = `
+                <button class="btn" onclick="search(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>PREV</button>
+                <span style="margin: 0 15px;">Page ${currentPage} of ${data.total_pages}</span>
+                <button class="btn" onclick="search(${currentPage + 1})" ${currentPage === data.total_pages ? 'disabled' : ''}>NEXT</button>
+            `;
+            resDiv.appendChild(nav);
         }
+    } catch (err) {
+        resDiv.innerHTML = "Error connecting to server.";
+    }
+}
     </script>
 </body>
 </html>
